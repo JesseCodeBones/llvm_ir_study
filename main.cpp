@@ -19,7 +19,6 @@ int main(int, char **) {
   llvm::LLVMContext context;
   llvm::IRBuilder<> builder(context);
   std::string moduleName("jesse module");
-
   llvm::Module module(moduleName, context);
   std::vector<llvm::Type *> integers(2, llvm::Type::getInt32Ty(context));
   auto functionType =
@@ -31,6 +30,14 @@ int main(int, char **) {
       llvm::BasicBlock::Create(context, "entry", function);
   builder.SetInsertPoint(basicBlock);
   auto value = llvm::ConstantInt::get(context, llvm::APInt(32, 69));
+  auto * helloWorld = llvm::ConstantDataArray::getString(context, "hello world\n");
+  std::vector<llvm::Value *> ArgsV;    
+  ArgsV.push_back(helloWorld);
+  std::vector<llvm::Type *> printfArgTypes(1, llvm::Type::getInt8PtrTy(context));
+  auto *printfType = llvm::FunctionType::get(llvm::Type::getInt32Ty(context), printfArgTypes, false);
+  printf("hello world");
+  auto printfFunc = module.getOrInsertFunction("printf", printfType);
+  builder.CreateCall(printfFunc, ArgsV, "printf");
   builder.CreateRet(value);
   llvm::verifyFunction(*function);
   module.print(llvm::errs(), nullptr);
